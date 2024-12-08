@@ -39,6 +39,7 @@ export default function Page() {
                     console.error('Error fetching members data:', error);
                     // Handle the error appropriately (e.g., show an error message to the user)
                 } else {
+                    console.log(data, 'SSSSSSS')
                     setList(data);
                 }
             } catch (error) {
@@ -67,9 +68,6 @@ export default function Page() {
                             </DialogDescription>
                         </DialogHeader>
                         <MemberForm />
-                        <DialogFooter>
-                            <Button className="w-full" type="submit">Save changes</Button>
-                        </DialogFooter>
                     </DialogContent>
                 </Dialog>
             </div>

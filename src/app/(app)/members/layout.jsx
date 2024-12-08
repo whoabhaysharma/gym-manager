@@ -1,6 +1,7 @@
 "use client"
 import { AppSidebar } from "@/components/custom/appSidebar"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { Toaster } from "@/components/ui/toaster"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
@@ -26,6 +27,7 @@ export default function Layout({ children }) {
                         <SidebarTrigger />
                         {children}
                     </main>
+                    <Toaster />
                 </SidebarProvider>
             )}
         </>

@@ -1,114 +1,186 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import supabase from '@/lib/supabase/client'
+import { useForm } from "react-hook-form";
+import * as z from "zod"
+import { zodResolver } from "@hookform/resolvers/zod"
+import supabase from "@/lib/supabase/client"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { useToast } from "@/hooks/use-toast"
+
+
+const FormSchema = z.object({
+    billNumber: z.number().min(1, { message: 'Bill number is required' }),
+    name: z.string().min(2, { message: 'Name is required' }),
+    duration: z.string().min(1, { message: 'Duration is required' }),
+    amount: z.number().min(1, { message: 'Amount is required' }),
+    startDate: z.string().min(1, { message: 'Start date is required' }),
+});
 
 export default function BillingForm({ initialValues = {} }) {
-    const [billNumber, setBillNumber] = useState('')
-    const [name, setName] = useState('')
-    const [duration, setDuration] = useState('')
-    const [amount, setAmount] = useState('')
-    const [startDate, setStartDate] = useState('')
+    const [loading, setLoading] = useState(false)
+    const { toast } = useToast()
 
-    // Update state when initialValues prop changes
-    useEffect(() => {
-        if (initialValues) {
-            setBillNumber(initialValues.billNumber || '')
-            setName(initialValues.name || '')
-            setDuration(initialValues.duration || '')
-            setAmount(initialValues.amount || '')
+    const form = useForm({
+        resolver: zodResolver(FormSchema),
+        defaultValues: {
+            billNumber: initialValues.billNumber || undefined,
+            name: initialValues.name || undefined,
+            duration: initialValues.duration || undefined,
+            amount: initialValues.amount || undefined,
+            startDate: initialValues.startDate || undefined
+        },
+    });
+
+    const onSubmit = async (data) => {
+        setLoading(true)
+        try {
+            const { data: createdData, error } = await supabase
+                .from("members")
+                .insert({
+                    name: data.name,
+                    bill_number: data.billNumber,
+                    joining_date: data.startDate
+                })
+
+            if (error) {
+                if (error.code === "23505") {
+                    toast({
+                        title: "Duplicate Bill Number",
+                        description: "There is already a member present with bill number " + data.billNumber,
+                    })
+                }
+                setLoading(false)
+                console.error('Error creating entry:', error)
+                return { success: false, error }
+            }
+            form.reset()
+
+            console.log('Form submitted', data, createdData)
+
+        } catch (e) {
+            console.log(e, 'GOT THIS ERROR')
+        } finally {
+            setLoading(false)
         }
-    }, [initialValues])
 
-    const handleSubmit = async (e) => {
-        e.preventDefault()
-        // const { data: createdData, error } = await supabase
-        //     .from("members")
-        //     .insert({
-        //         name: name,
-        //         bill_number: billNumber,
-        //         joining_date :
-        //     })
-
-        // if (error) {
-        //     console.error('Error creating entry:', error)
-        //     return { success: false, error }
-        // }
-
-        // console.log('Entry created successfully:', createdData)
-        // return { success: true, data: createdData }
-        console.log('Form submitted', { billNumber, name, duration, amount })
-        // Reset form fields after submission
-        setBillNumber('')
-        setName('')
-        setDuration('')
-        setAmount('')
     }
 
     return (
-        <form onSubmit={handleSubmit}>
-            <div className="space-y-3">
-                <div className="space-y-1">
-                    <Label htmlFor="billNumber">Bill Number</Label>
-                    <Input
-                        id="billNumber"
-                        type="number"
-                        placeholder="Enter bill number"
-                        value={billNumber}
-                        onChange={(e) => setBillNumber(e.target.value)}
-                        required
-                    />
-                </div>
-                <div className="space-y-1">
-                    <Label htmlFor="name">Name</Label>
-                    <Input
-                        id="name"
-                        type="text"
-                        placeholder="Enter name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        required
-                    />
-                </div>
-                <div className="space-y-1">
-                    <Label htmlFor="duration">Duration (Months)</Label>
-                    <Select value={duration} onValueChange={setDuration} required>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select duration" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="1">1 month</SelectItem>
-                            <SelectItem value="3">3 months</SelectItem>
-                            <SelectItem value="9">9 months</SelectItem>
-                            <SelectItem value="12">12 months</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div className="space-y-1">
-                    <Label htmlFor="amount">Amount</Label>
-                    <Input
-                        id="amount"
-                        type="number"
-                        placeholder="Enter amount"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        required
-                    />
-                </div>
-                <div className="space-y-1">
-                    <Label htmlFor="startDate">Start Date / Joining Date</Label>
-                    <Input
-                        id="startDate"
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        required
-                    />
-                </div>
-            </div>
-        </form>
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+                <FormField
+                    control={form.control}
+                    name="billNumber"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Bill Number</FormLabel>
+                            <FormControl>
+                                <Input
+                                    placeholder="Enter bill number"
+                                    type="number"
+                                    value={field.value || ""}
+                                    onChange={(e) => field.onChange(Number(e.target.value))}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Name</FormLabel>
+                            <FormControl>
+                                <Input
+                                    placeholder="Enter name"
+                                    type="text"
+                                    value={field.value || ""}
+                                    onChange={(e) => field.onChange(e.target.value)}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="duration"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Duration (Months)</FormLabel>
+                            <Select
+                                onValueChange={field.onChange}
+                                value={field.value}
+                            >
+                                <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select duration" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem value="1">1 month</SelectItem>
+                                    <SelectItem value="3">3 months</SelectItem>
+                                    <SelectItem value="9">9 months</SelectItem>
+                                    <SelectItem value="12">12 months</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="amount"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Amount</FormLabel>
+                            <FormControl>
+                                <Input
+                                    placeholder="Enter amount"
+                                    type="number"
+                                    value={field.value || ""}
+                                    onChange={(e) => field.onChange(Number(e.target.value))}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="startDate"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Start Date / Joining Date</FormLabel>
+                            <FormControl>
+                                <Input
+                                    type="date"
+                                    value={field.value || ""}
+                                    onChange={(e) => field.onChange(e.target.value)}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <Button className="w-full" type="submit">
+                    {loading ? "Saving..." : "Save"}
+                </Button>
+            </form>
+        </Form>
     )
 }

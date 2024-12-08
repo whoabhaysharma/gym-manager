@@ -25,22 +25,21 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-import { EllipsisVertical } from "lucide-react";
+import { EllipsisVertical, Hash } from "lucide-react";
 import { debounce } from "lodash";
 
 export default function Page() {
     const [list, setList] = useState([])
     const [searchTerm, setSearchTerm] = useState("")
     // Fetch the data using Supabase's from and select
-    const getMembersData = async (name) => {
+    const getMembersData = async (search = null) => {
         try {
-            const { data, error } = await supabase.rpc('get_member_details', { search_name: name });
+            const { data, error } = await supabase.rpc('search_membersv2', { search_term: search });
 
             if (error) {
                 console.error('Error fetching members data:', error);
                 // Handle the error appropriately (e.g., show an error message to the user)
             } else {
-                console.log(data, 'SSSSSSS');
                 setList(data);
             }
         } catch (error) {

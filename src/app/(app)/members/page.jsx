@@ -30,20 +30,26 @@ import { EllipsisVertical } from "lucide-react";
 export default function Page() {
     const [list, setList] = useState([])
     // Fetch the data using Supabase's from and select
-    const getMembersData = async () => {
-        const { data, error } = await supabase.rpc('get_members_with_days_remaining');
-
-        if (error) {
-            console.error('Error fetching members data:', error);
-            return null;
-        }
-        setList(data);
-    };
-
     useEffect(() => {
+        const getMembersData = async () => {
+            try {
+                const { data, error } = await supabase.rpc('get_members_with_days_remaining');
 
-        getMembersData()
-    }, [])
+                if (error) {
+                    console.error('Error fetching members data:', error);
+                    // Handle the error appropriately (e.g., show an error message to the user)
+                } else {
+                    setList(data);
+                }
+            } catch (error) {
+                console.error('Unexpected error:', error);
+                // Handle unexpected errors
+            } finally {
+            }
+        };
+
+        getMembersData();
+    }, []);
 
     return (
         <div>
@@ -81,7 +87,7 @@ export default function Page() {
                 <TableBody>
                     {list.map(item => {
                         return (
-                            <TableRow key={item.id}>
+                            <TableRow key={item.member_id}>
                                 <TableCell>{item.member_name}</TableCell>
                                 <TableCell>
                                     <Badge>

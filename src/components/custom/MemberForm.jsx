@@ -1,20 +1,45 @@
 'use client'
 
-import { useState } from 'react'
-import { Button } from "@/components/ui/button"
+import { useState, useEffect } from 'react'
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import supabase from '@/lib/supabase/client'
 
-export default function BillingForm() {
+export default function BillingForm({ initialValues = {} }) {
     const [billNumber, setBillNumber] = useState('')
     const [name, setName] = useState('')
     const [duration, setDuration] = useState('')
     const [amount, setAmount] = useState('')
+    const [startDate, setStartDate] = useState('')
 
-    const handleSubmit = (e) => {
+    // Update state when initialValues prop changes
+    useEffect(() => {
+        if (initialValues) {
+            setBillNumber(initialValues.billNumber || '')
+            setName(initialValues.name || '')
+            setDuration(initialValues.duration || '')
+            setAmount(initialValues.amount || '')
+        }
+    }, [initialValues])
+
+    const handleSubmit = async (e) => {
         e.preventDefault()
-        // Here you would typically send the form data to your backend
+        // const { data: createdData, error } = await supabase
+        //     .from("members")
+        //     .insert({
+        //         name: name,
+        //         bill_number: billNumber,
+        //         joining_date :
+        //     })
+
+        // if (error) {
+        //     console.error('Error creating entry:', error)
+        //     return { success: false, error }
+        // }
+
+        // console.log('Entry created successfully:', createdData)
+        // return { success: true, data: createdData }
         console.log('Form submitted', { billNumber, name, duration, amount })
         // Reset form fields after submission
         setBillNumber('')
@@ -25,7 +50,7 @@ export default function BillingForm() {
 
     return (
         <form onSubmit={handleSubmit}>
-            <div className='space-y-3'>
+            <div className="space-y-3">
                 <div className="space-y-1">
                     <Label htmlFor="billNumber">Bill Number</Label>
                     <Input
@@ -70,6 +95,16 @@ export default function BillingForm() {
                         placeholder="Enter amount"
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
+                        required
+                    />
+                </div>
+                <div className="space-y-1">
+                    <Label htmlFor="startDate">Start Date / Joining Date</Label>
+                    <Input
+                        id="startDate"
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
                         required
                     />
                 </div>

@@ -12,6 +12,8 @@ import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import supabase from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
     username: z
@@ -25,13 +27,24 @@ const formSchema = z.object({
 });
 
 export default function Login() {
+    const router = useRouter()
     const form = useForm({
         resolver: zodResolver(formSchema),
     });
 
-    const onSubmit = (data) => {
-        // Handle form submission logic here
-        console.log(data);
+    const onSubmit = async (d) => {
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: d.username,
+            password: d.password,
+        })
+
+        if (error) {
+            console.error(error);
+            return;
+        }
+
+        localStorage.setItem("token", data.session.token);
+        router.push("/members")
     };
 
     return (

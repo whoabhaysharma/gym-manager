@@ -1,4 +1,6 @@
 "use client"
+import { AppSidebar } from "@/components/custom/appSidebar"
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
@@ -17,7 +19,17 @@ export default function Layout({ children }) {
 
     return (
         <>
-            {!loading && children}
+            {!loading && (
+                <SidebarProvider>
+                    <AppSidebar />
+                    <main className="flex-1 flex flex-col">
+                        <SidebarTrigger />
+                        <div className="p-4">
+                            {children}
+                        </div>
+                    </main>
+                </SidebarProvider>
+            )}
         </>
     )
 }

@@ -16,6 +16,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import MemberForm from "@/components/custom/MemberForm"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
+import { EllipsisVertical } from "lucide-react";
 
 export default function Page() {
     const [list, setList] = useState([])
@@ -65,6 +75,7 @@ export default function Page() {
                         <TableHead>Code</TableHead>
                         <TableHead>Remaining Days</TableHead>
                         <TableHead className="text-right">Progress</TableHead>
+                        <TableHead className="text-right">Options</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -80,6 +91,20 @@ export default function Page() {
                                 <TableCell>{item.total_days_remaining}</TableCell>
                                 <TableCell className="text-right">
                                     <Progress value={Math.min((item.total_days_remaining / 30) * 100, 100)} />
+                                </TableCell>
+                                <TableCell className="text-right flex justify-end items-center">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger>
+                                            <EllipsisVertical className="transition-all hover:bg-slate-400 w-5 h-5 rounded-full cursor-pointer" size={"15"} />
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent>
+                                            <DropdownMenuLabel>Options</DropdownMenuLabel>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem onClick={() => console.log('hello')}>Edit</DropdownMenuItem>
+                                            <DropdownMenuItem>Delete</DropdownMenuItem>
+                                            <DropdownMenuItem>Attendance</DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                 </TableCell>
                             </TableRow>
                         )

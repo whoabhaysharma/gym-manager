@@ -14,6 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import MemberForm from "@/components/custom/MemberForm"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export default function Page() {
     const [list, setList] = useState([])
@@ -33,12 +35,27 @@ export default function Page() {
         getMembersData()
     }, [])
 
-    console.log(list, 'LIST')
     return (
         <div>
             <div className="flex justify-between mb-3 mt-3 gap-3">
                 <Input className="w-1/4" placeholder="Search Members..." />
-                <Button>Add Member</Button>
+                <Dialog>
+                    <DialogTrigger asChild>
+                        <Button>Add Member</Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                            <DialogTitle>Create Member</DialogTitle>
+                            <DialogDescription>
+                                Make changes to your profile here. Click save when you're done.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <MemberForm />
+                        <DialogFooter>
+                            <Button className="w-full" type="submit">Save changes</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
             <Table>
                 <TableCaption>A list of your recent invoices.</TableCaption>

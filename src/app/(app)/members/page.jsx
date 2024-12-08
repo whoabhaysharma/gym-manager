@@ -1,6 +1,6 @@
 "use client"
 import supabase from "@/lib/supabase/client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
     Table,
     TableBody,
@@ -26,36 +26,54 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 import { EllipsisVertical } from "lucide-react";
+import { debounce } from "lodash";
 
 export default function Page() {
     const [list, setList] = useState([])
+    const [searchTerm, setSearchTerm] = useState("")
     // Fetch the data using Supabase's from and select
-    useEffect(() => {
-        const getMembersData = async () => {
-            try {
-                const { data, error } = await supabase.rpc('get_members_with_days_remaining');
+    const getMembersData = async (name) => {
+        try {
+            const { data, error } = await supabase.rpc('get_member_details', { search_name: name });
 
-                if (error) {
-                    console.error('Error fetching members data:', error);
-                    // Handle the error appropriately (e.g., show an error message to the user)
-                } else {
-                    console.log(data, 'SSSSSSS')
-                    setList(data);
-                }
-            } catch (error) {
-                console.error('Unexpected error:', error);
-                // Handle unexpected errors
-            } finally {
+            if (error) {
+                console.error('Error fetching members data:', error);
+                // Handle the error appropriately (e.g., show an error message to the user)
+            } else {
+                console.log(data, 'SSSSSSS');
+                setList(data);
             }
-        };
+        } catch (error) {
+            console.error('Unexpected error:', error);
+        // Handle unexpected errors
+        }
+    };
 
-        getMembersData();
-    }, []);
+    // Debounced version of getMembersData
+    const debouncedGetMembersData = useCallback(
+        debounce((name) => {
+            getMembersData(name);
+        }, 300), // Adjust the debounce delay (in milliseconds) as needed
+        []
+    );
+
+    useEffect(() => {
+        debouncedGetMembersData(searchTerm);
+        // Cleanup the debounced function on unmount
+        return () => {
+            debouncedGetMembersData.cancel();
+        };
+    }, [searchTerm, debouncedGetMembersData]);
 
     return (
         <div>
             <div className="flex justify-between mb-3 mt-3 gap-3">
-                <Input className="w-1/4" placeholder="Search Members..." />
+                <Input
+                    className="w-1/4"
+                    placeholder="Search Members..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
                 <Dialog>
                     <DialogTrigger asChild>
                         <Button>Add Member</Button>

@@ -22,11 +22,9 @@ export default function Layout({ children }) {
             {!loading && (
                 <SidebarProvider>
                     <AppSidebar />
-                    <main className="flex-1 flex flex-col">
+                    <main className="flex-1 flex flex-col p-5">
                         <SidebarTrigger />
-                        <div className="p-4">
-                            {children}
-                        </div>
+                        {children}
                     </main>
                 </SidebarProvider>
             )}

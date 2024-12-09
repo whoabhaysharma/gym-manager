@@ -16,9 +16,7 @@ import * as z from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import supabase from "@/lib/supabase/client"
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
-
 
 const FormSchema = z.object({
     billNumber: z.number().min(1, { message: 'Bill number is required' }),
@@ -43,39 +41,72 @@ export default function BillingForm({ initialValues = {} }) {
         },
     });
 
-    const onSubmit = async (data) => {
-        setLoading(true)
+    const onSubmit = async (formData) => {
+        console.log('Form Data:', formData);
+
+        setLoading(true);
+
         try {
-            const { data: createdData, error } = await supabase
+            // Insert the new member
+            const { data: insertedMember, error: memberError } = await supabase
                 .from("members")
                 .insert({
-                    name: data.name,
-                    bill_number: data.billNumber,
-                    joining_date: data.startDate
+                    name: formData.name,
+                    bill_number: formData.billNumber,
+                    joining_date: formData.startDate,
                 })
+                .select("*")
+                .single();
 
-            if (error) {
-                if (error.code === "23505") {
-                    toast({
-                        title: "Duplicate Bill Number",
-                        description: "There is already a member present with bill number " + data.billNumber,
-                    })
-                }
-                setLoading(false)
-                console.error('Error creating entry:', error)
-                return { success: false, error }
+            if (memberError) {
+                handleInsertError(memberError, formData.billNumber);
+                return { success: false, error: memberError };
             }
-            form.reset()
 
-            console.log('Form submitted', data, createdData)
+            console.log('Inserted Member:', insertedMember);
 
-        } catch (e) {
-            console.log(e, 'GOT THIS ERROR')
+            // Insert the membership for the new member
+            const { data: membership, error: membershipError } = await supabase
+                .from("memberships")
+                .insert({
+                    member_id: insertedMember.id, // Assuming bill number maps to member_id
+                    start_date: formData.startDate,
+                    duration: parseInt(formData.duration, 10),
+                    amount: formData.amount,
+                });
+
+            if (membershipError) {
+                console.error('Error creating membership:', membershipError);
+                return { success: false, error: membershipError };
+            }
+
+            console.log('Membership Created:', membership);
+
+            // Reset the form on success
+            form.reset();
+
+            return { success: true, data: { member: insertedMember, membership } };
+
+        } catch (error) {
+            console.error('Unexpected Error:', error);
+            return { success: false, error };
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
+    };
 
-    }
+    // Helper function to handle specific errors
+    const handleInsertError = (error, billNumber) => {
+        if (error.code === "23505") {
+            toast({
+                title: "Duplicate Bill Number",
+                description: `There is already a member present with bill number ${billNumber}.`,
+            });
+        } else {
+            console.error('Error creating entry:', error);
+        }
+    };
+
 
     return (
         <Form {...form}>

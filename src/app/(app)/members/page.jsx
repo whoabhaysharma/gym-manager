@@ -27,6 +27,7 @@ import {
 import { EllipsisVertical } from "lucide-react";
 import { debounce } from "lodash";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"; // Assuming this is available in your design system
+import { useRouter } from "next/navigation";
 
 export default function Page() {
     const [list, setList] = useState([]);
@@ -35,6 +36,7 @@ export default function Page() {
     const [pageSize, setPageSize] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
 
+    const router = useRouter()
     // Fetch the data using Supabase's RPC function
     const getMembersData = async (search = null, page = 1, size = 10) => {
         try {
@@ -137,7 +139,7 @@ export default function Page() {
                 <TableBody>
                     {list.map(item => (
                         <TableRow key={item.member_id}>
-                            <TableCell>{item.member_name}</TableCell>
+                            <TableCell className="cursor-pointer" onClick={() => router.push(`/members/${item.member_id}`)}>{item.member_name}</TableCell>
                             <TableCell>
                                 <Badge>{item?.member_id}</Badge>
                             </TableCell>

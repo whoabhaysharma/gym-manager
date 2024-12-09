@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import supabase from "@/lib/supabase/client";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -9,13 +9,13 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import MemberForm from "@/components/custom/MemberForm"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import MemberForm from "@/components/custom/MemberForm";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -23,46 +23,82 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-
-import { EllipsisVertical, Hash } from "lucide-react";
+} from "@/components/ui/dropdown-menu";
+import { EllipsisVertical } from "lucide-react";
 import { debounce } from "lodash";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"; // Assuming this is available in your design system
 
 export default function Page() {
-    const [list, setList] = useState([])
-    const [searchTerm, setSearchTerm] = useState("")
-    // Fetch the data using Supabase's from and select
-    const getMembersData = async (search = null) => {
+    const [list, setList] = useState([]);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalItems, setTotalItems] = useState(0);
+
+    // Fetch the data using Supabase's RPC function
+    const getMembersData = async (search = null, page = 1, size = 10) => {
         try {
-            const { data, error } = await supabase.rpc('search_membersv2', { search_term: search });
+            const { data, error } = await supabase.rpc('get_members_with_pagination', {
+                search_term: search,
+                page_number: page,
+                page_size: size,
+            });
 
             if (error) {
-                console.error('Error fetching members data:', error);
-                // Handle the error appropriately (e.g., show an error message to the user)
+                console.error("Error fetching members data:", error);
             } else {
                 setList(data);
             }
         } catch (error) {
-            console.error('Unexpected error:', error);
-            // Handle unexpected errors
+            console.error("Unexpected error:", error);
+        }
+    };
+
+    // Fetch total members count
+    const getTotalMembersCount = async (search = null) => {
+        try {
+            const { count, error } = await supabase
+                .from("members") // Assuming you have a 'members' table
+                .select("id", { count: "exact", head: true })
+
+            if (error) {
+                console.error("Error fetching total members count:", error);
+            } else {
+                setTotalItems(count); // Set the total number of items for pagination
+            }
+        } catch (error) {
+            console.error("Unexpected error fetching total members count:", error);
         }
     };
 
     // Debounced version of getMembersData
     const debouncedGetMembersData = useCallback(
         debounce((name) => {
-            getMembersData(name);
-        }, 300), // Adjust the debounce delay (in milliseconds) as needed
-        []
+            getMembersData(name, currentPage, pageSize);
+            getTotalMembersCount(name); // Get total count whenever search changes
+        }, 300),
+        [currentPage, pageSize]
     );
 
     useEffect(() => {
         debouncedGetMembersData(searchTerm);
-        // Cleanup the debounced function on unmount
         return () => {
             debouncedGetMembersData.cancel();
         };
     }, [searchTerm, debouncedGetMembersData]);
+
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+        getMembersData(searchTerm, page, pageSize);
+    };
+
+    const handlePageSizeChange = (size) => {
+        setPageSize(size);
+        setCurrentPage(1); // Reset to first page when page size changes
+        getMembersData(searchTerm, 1, size);
+    };
+
+    const totalPages = Math.ceil(totalItems / pageSize);
 
     return (
         <div>
@@ -89,7 +125,6 @@ export default function Page() {
                 </Dialog>
             </div>
             <Table>
-                <TableCaption>A list of your recent invoices.</TableCaption>
                 <TableHeader>
                     <TableRow>
                         <TableHead className="w-[100px]">Name</TableHead>
@@ -100,40 +135,66 @@ export default function Page() {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {list.map(item => {
-                        return (
-                            <TableRow key={item.member_id}>
-                                <TableCell>
-                                    {item.member_name}
-                                </TableCell>
-                                <TableCell>
-                                    <Badge>
-                                        {item?.member_id}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell>{item.total_days_remaining}</TableCell>
-                                <TableCell className="text-right">
-                                    <Progress value={Math.min((item.total_days_remaining / 30) * 100, 100)} />
-                                </TableCell>
-                                <TableCell className="text-right flex justify-end items-center">
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger>
-                                            <EllipsisVertical className="transition-all hover:bg-slate-400 w-5 h-5 rounded-full cursor-pointer" size={"15"} />
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent>
-                                            <DropdownMenuLabel>Options</DropdownMenuLabel>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem onClick={() => console.log('hello')}>Edit</DropdownMenuItem>
-                                            <DropdownMenuItem>Delete</DropdownMenuItem>
-                                            <DropdownMenuItem>Attendance</DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </TableCell>
-                            </TableRow>
-                        )
-                    })}
+                    {list.map(item => (
+                        <TableRow key={item.member_id}>
+                            <TableCell>{item.member_name}</TableCell>
+                            <TableCell>
+                                <Badge>{item?.member_id}</Badge>
+                            </TableCell>
+                            <TableCell>{item.total_days_remaining}</TableCell>
+                            <TableCell className="text-right">
+                                <Progress value={Math.min((item.total_days_remaining / 30) * 100, 100)} />
+                            </TableCell>
+                            <TableCell className="text-right flex justify-end items-center">
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger>
+                                        <EllipsisVertical className="transition-all hover:bg-slate-400 w-5 h-5 rounded-full cursor-pointer" size={"15"} />
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent>
+                                        <DropdownMenuLabel>Options</DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem onClick={() => console.log("hello")}>Edit</DropdownMenuItem>
+                                        <DropdownMenuItem>Delete</DropdownMenuItem>
+                                        <DropdownMenuItem>Attendance</DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </TableCell>
+                        </TableRow>
+                    ))}
                 </TableBody>
             </Table>
+            <div className="mt-4 flex justify-end items-end">
+                <Pagination>
+                    <PaginationContent>
+                        <PaginationItem>
+                            <PaginationPrevious
+                                href="#"
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                disabled={currentPage === 1}
+                            />
+                        </PaginationItem>
+                        {Array.from({ length: totalPages }, (_, i) => (
+                            <PaginationItem key={i}>
+                                <PaginationLink
+                                    href="#"
+                                    onClick={() => handlePageChange(i + 1)}
+                                    className={currentPage === i + 1 ? 'bg-gray-200 p-2 rounded' : ''}
+                                >
+                                    {i + 1}
+                                </PaginationLink>
+
+                            </PaginationItem>
+                        ))}
+                        <PaginationItem>
+                            <PaginationNext
+                                href="#"
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                disabled={currentPage === totalPages || totalPages === 0}
+                            />
+                        </PaginationItem>
+                    </PaginationContent>
+                </Pagination>
+            </div>
         </div>
     );
 }

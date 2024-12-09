@@ -33,18 +33,18 @@ export default function Login() {
     });
 
     const onSubmit = async (d) => {
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email: d.username,
-            password: d.password,
-        })
+        const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(d),
+        });
 
-        if (error) {
-            console.error(error);
-            return;
+        if (response.ok) {
+            router.push('/members');
+        } else {
+            const error = await response.json();
+            console.error(error.message);
         }
-
-        localStorage.setItem("token", data.session.token);
-        router.push("/members")
     };
 
     return (

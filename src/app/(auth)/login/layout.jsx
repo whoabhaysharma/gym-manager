@@ -1,23 +1,13 @@
-"use client"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
-export default function Layout({ children }) {
-    const [loading, setLoading] = useState(true)
-    const router = useRouter()
+export default async function Layout({ children }) {
+    const cookieStore = (await cookies());
+    const token = cookieStore.get("token")?.value;
 
-    useEffect(() => {
-        const token = localStorage.getItem("token")
-        if (token) {
-            router.push("/members")
-        } else {
-            setLoading(false)
-        }
-    })
+    if (token) {
+        redirect('/members')
+    }
 
-    return (
-        <>
-            {!loading && children}
-        </>
-    )
+    return children
 }

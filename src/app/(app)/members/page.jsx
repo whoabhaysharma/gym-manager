@@ -44,7 +44,7 @@ export default function Page() {
             }
         } catch (error) {
             console.error('Unexpected error:', error);
-        // Handle unexpected errors
+            // Handle unexpected errors
         }
     };
 
@@ -103,7 +103,9 @@ export default function Page() {
                     {list.map(item => {
                         return (
                             <TableRow key={item.member_id}>
-                                <TableCell>{item.member_name}</TableCell>
+                                <TableCell>
+                                    {item.member_name}
+                                </TableCell>
                                 <TableCell>
                                     <Badge>
                                         {item?.member_id}

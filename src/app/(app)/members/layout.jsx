@@ -1,35 +1,28 @@
-"use client"
 import { AppSidebar } from "@/components/custom/appSidebar"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { Toaster } from "@/components/ui/toaster"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
-export default function Layout({ children }) {
-    const [loading, setLoading] = useState(true)
-    const router = useRouter()
+export default async function Layout({ children }) {
 
-    useEffect(() => {
-        const token = localStorage.getItem("token")
-        if (token) {
-            setLoading(false)
-        } else {
-            router.push("/login")
-        }
-    })
+    const cookieStore = (await cookies());
+    const token = cookieStore.get("token")?.value;
+
+    if (!token) {
+        redirect('/login')
+    }
 
     return (
         <>
-            {!loading && (
-                <SidebarProvider>
-                    <AppSidebar />
-                    <main className="flex-1 flex flex-col p-5">
-                        <SidebarTrigger />
-                        {children}
-                    </main>
-                    <Toaster />
-                </SidebarProvider>
-            )}
+            <SidebarProvider>
+                <AppSidebar />
+                <main className="flex-1 flex flex-col p-5">
+                    <SidebarTrigger />
+                    {children}
+                </main>
+                <Toaster />
+            </SidebarProvider>
         </>
     )
 }

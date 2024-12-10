@@ -1,12 +1,13 @@
-import { cookies } from "next/headers";
+import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
 export default async function Layout({ children }) {
-    const cookieStore = (await cookies());
-    const token = cookieStore.get("token")?.value;
+    const supabase = await createClient()
 
-    if (token) {
-        redirect('/members')
+    const { data } = await supabase.auth.getUser()
+
+    if (data.user) {
+        redirect("/members")
     }
 
     return children

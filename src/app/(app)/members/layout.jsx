@@ -1,16 +1,16 @@
 import { AppSidebar } from "@/components/custom/appSidebar"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { Toaster } from "@/components/ui/toaster"
-import { cookies } from "next/headers";
+import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
 export default async function Layout({ children }) {
+    const supabase = await createClient()
 
-    const cookieStore = (await cookies());
-    const token = cookieStore.get("token")?.value;
+    const { data } = await supabase.auth.getUser()
 
-    if (!token) {
-        redirect('/login')
+    if (!data.user) {
+        redirect("/login")
     }
 
     return (

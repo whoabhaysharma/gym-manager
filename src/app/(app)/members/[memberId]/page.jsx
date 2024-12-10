@@ -1,44 +1,75 @@
+// MemberDetail.js
+'use client';
+
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import moment from "moment";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { startCase, toLower } from "lodash";
-import { cookies } from 'next/headers';
+import { useState, useEffect, use } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import MembershipForm from "./membershipForm";
 
-export default async function MemberDetail({ params }) {
-    const id = (await params).memberId;
-    const cookiesList = await cookies();
+export default function MemberDetail({ params }) {
+    const [memberData, setMemberData] = useState(null);
+    const [membershipsData, setMembershipsData] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [open, setOpen] = useState(false);
+    const paramResolved = use(params)
 
-    let memberData, membershipsData;
+    const fetchData = async () => {
+        try {
+            const id = paramResolved.memberId;
 
-    try {
-        const memberResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/members/${id}`, {
-            headers: {
-                'Cookie': cookiesList.toString()
-            }
-        });
+            const memberResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/members/${id}`);
+            const memberData = await memberResponse.json();
+            setMemberData(memberData);
 
-        memberData = await memberResponse.json();
+            const membershipsResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/members/${memberData.member.id}/memberships`);
+            const membershipsData = await membershipsResponse.json();
+            setMembershipsData(membershipsData);
+        } catch (err) {
+            console.error("Error fetching data:", err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-        const membershipsResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/members/${memberData.member.id}/memberships`, {
-            headers: {
-                'Cookie': cookiesList.toString()
-            }
-        });
+    useEffect(() => {
+        fetchData();
+    }, [paramResolved]);
 
-        membershipsData = await membershipsResponse.json();
-
-    } catch (err) {
-        return <div>Error: {err.message}</div>;
+    if (isLoading) {
+        return <div>Loading...</div>;
     }
 
-    const mom = moment(memberData.member.joining_date)
+    if (!memberData || !membershipsData) {
+        return <div>Error loading data.</div>;
+    }
+
+    const mom = moment(memberData.member.joining_date);
 
     return (
         <div>
             <div className="mb-4 flex flex-row justify-end">
-                <Button>Add Membership +</Button>
+                <Dialog open={open} onOpenChange={setOpen}>
+                    <DialogTrigger asChild>
+                        <Button>Add Membership +</Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Add New Membership</DialogTitle>
+                        </DialogHeader>
+                        <MembershipForm
+                            memberId={memberData.member.id}
+                            onSuccess={() => {
+                                fetchData()
+                                setOpen(false)
+                            }}
+                        />
+                    </DialogContent>
+                </Dialog>
             </div>
             <Card>
                 <CardHeader>

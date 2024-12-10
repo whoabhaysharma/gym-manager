@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
     Form,
     FormControl,
@@ -9,26 +9,32 @@ import {
     FormItem,
     FormLabel,
     FormMessage,
-} from "@/components/ui/form"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+} from "@/components/ui/form";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { useForm } from "react-hook-form";
-import * as z from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import supabase from "@/lib/supabase/client"
-import { useState } from "react"
-import { useToast } from "@/hooks/use-toast"
+import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import axios from "axios";
 
 const FormSchema = z.object({
-    billNumber: z.number().min(1, { message: 'Bill number is required' }),
-    name: z.string().min(2, { message: 'Name is required' }),
-    duration: z.string().min(1, { message: 'Duration is required' }),
-    amount: z.number().min(1, { message: 'Amount is required' }),
-    startDate: z.string().min(1, { message: 'Start date is required' }),
+    billNumber: z.number().min(1, { message: "Bill number is required" }),
+    name: z.string().min(2, { message: "Name is required" }),
+    duration: z.string().min(1, { message: "Duration is required" }),
+    amount: z.number().min(1, { message: "Amount is required" }),
+    startDate: z.string().min(1, { message: "Start date is required" }),
 });
 
-export default function BillingForm({ initialValues = {} }) {
-    const [loading, setLoading] = useState(false)
-    const { toast } = useToast()
+export default function BillingForm({ initialValues = {}, onSuccess = () => { } }) {
+    const [loading, setLoading] = useState(false);
+    const { toast } = useToast();
 
     const form = useForm({
         resolver: zodResolver(FormSchema),
@@ -37,76 +43,62 @@ export default function BillingForm({ initialValues = {} }) {
             name: initialValues.name || undefined,
             duration: initialValues.duration || undefined,
             amount: initialValues.amount || undefined,
-            startDate: initialValues.startDate || undefined
+            startDate: initialValues.startDate || undefined,
         },
     });
 
     const onSubmit = async (formData) => {
-        console.log('Form Data:', formData);
-
         setLoading(true);
 
         try {
-            // Insert the new member
-            const { data: insertedMember, error: memberError } = await supabase
-                .from("members")
-                .insert({
-                    name: formData.name,
-                    bill_number: formData.billNumber,
-                    joining_date: formData.startDate,
-                })
-                .select("*")
-                .single();
+            // Save the member and membership data via API using axios
+            const memberResponse = await axios.post("/api/members", {
+                name: formData.name,
+                bill_number: formData.billNumber,
+                joining_date: formData.startDate,
+            });
+            const memberData = memberResponse.data;
 
-            if (memberError) {
-                handleInsertError(memberError, formData.billNumber);
-                return { success: false, error: memberError };
-            }
+            const membershipResponse = await axios.post(`/api/members/${memberData.member.id}/memberships`, {
+                start_date: formData.startDate,
+                duration: parseInt(formData.duration, 10),
+                amount: formData.amount,
+            });
 
-            console.log('Inserted Member:', insertedMember);
+            toast({
+                title: "Success",
+                description: "Member and membership saved successfully.",
+            });
 
-            // Insert the membership for the new member
-            const { data: membership, error: membershipError } = await supabase
-                .from("memberships")
-                .insert({
-                    member_id: insertedMember.id, // Assuming bill number maps to member_id
-                    start_date: formData.startDate,
-                    duration: parseInt(formData.duration, 10),
-                    amount: formData.amount,
-                });
-
-            if (membershipError) {
-                console.error('Error creating membership:', membershipError);
-                return { success: false, error: membershipError };
-            }
-
-            console.log('Membership Created:', membership);
-
-            // Reset the form on success
+            // Reset the form after successful submission
             form.reset();
-
-            return { success: true, data: { member: insertedMember, membership } };
-
+            onSuccess();
         } catch (error) {
-            console.error('Unexpected Error:', error);
-            return { success: false, error };
+            console.error("Unexpected Error:", error);
+            toast({
+                title: "Error",
+                description: error.message,
+            });
         } finally {
             setLoading(false);
         }
     };
 
-    // Helper function to handle specific errors
+
     const handleInsertError = (error, billNumber) => {
-        if (error.code === "23505") {
+        if (error?.code === "23505") {
             toast({
                 title: "Duplicate Bill Number",
                 description: `There is already a member present with bill number ${billNumber}.`,
             });
         } else {
-            console.error('Error creating entry:', error);
+            console.error("Error creating entry:", error);
+            toast({
+                title: "Error",
+                description: error,
+            });
         }
     };
-
 
     return (
         <Form {...form}>
@@ -208,10 +200,10 @@ export default function BillingForm({ initialValues = {} }) {
                         </FormItem>
                     )}
                 />
-                <Button className="w-full" type="submit">
+                <Button className="w-full" type="submit" disabled={loading}>
                     {loading ? "Saving..." : "Save"}
                 </Button>
             </form>
         </Form>
-    )
+    );
 }

@@ -34,8 +34,9 @@ export default function Page() {
     const [list, setList] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize, setPageSize] = useState(10);
+    const [pageSize, setPageSize] = useState(100);
     const [totalItems, setTotalItems] = useState(0);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     const router = useRouter()
     // Fetch the data using Supabase's RPC function
@@ -60,6 +61,11 @@ export default function Page() {
         } catch (error) {
             console.error("Unexpected error:", error);
         }
+    };
+
+    const handleDialogClose = () => {
+        getMembersData()
+        setIsDialogOpen(false); // Close the dialog
     };
 
     // Fetch total members count
@@ -122,9 +128,9 @@ export default function Page() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
-                <Dialog>
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
-                        <Button>Add Member</Button>
+                        <Button onClick={() => setIsDialogOpen(true)}>Add Member</Button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-[425px]">
                         <DialogHeader>
@@ -133,7 +139,7 @@ export default function Page() {
                                 Make changes to your profile here. Click save when you're done.
                             </DialogDescription>
                         </DialogHeader>
-                        <MemberForm />
+                        <MemberForm onSuccess={handleDialogClose} /> {/* Close on success */}
                     </DialogContent>
                 </Dialog>
             </div>

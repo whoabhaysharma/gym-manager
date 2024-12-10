@@ -51,7 +51,7 @@ export default function MembershipForm({ memberId, onSuccess = () => { } }) {
         setErrorMessage("");
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/members/${memberId}/memberships`, {
+            const response = await fetch(`/api/members/${memberId}/memberships`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(values),

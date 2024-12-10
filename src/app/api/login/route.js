@@ -8,7 +8,6 @@ export async function GET(req) {
 
 export async function POST(req) {
     const { username, password } = await req.json();
-    console.log(username, password, '--------------------------------')
 
     const { data, error } = await supabase.auth.signInWithPassword({
         email: username,

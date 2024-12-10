@@ -22,11 +22,11 @@ export default function MemberDetail({ params }) {
         try {
             const id = paramResolved.memberId;
 
-            const memberResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/members/${id}`);
+            const memberResponse = await fetch(`/api/members/${id}`);
             const memberData = await memberResponse.json();
             setMemberData(memberData);
 
-            const membershipsResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/members/${memberData.member.id}/memberships`);
+            const membershipsResponse = await fetch(`/api/members/${memberData.member.id}/memberships`);
             const membershipsData = await membershipsResponse.json();
             setMembershipsData(membershipsData);
         } catch (err) {

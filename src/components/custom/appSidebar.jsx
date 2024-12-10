@@ -3,9 +3,7 @@ import {
     SidebarContent,
     SidebarFooter,
     SidebarGroup,
-    SidebarHeader,
-    SidebarMenuButton,
-    SidebarMenuItem,
+    SidebarHeader
 } from "@/components/ui/sidebar"
 import { Separator } from "../ui/separator"
 import { Users } from "lucide-react"

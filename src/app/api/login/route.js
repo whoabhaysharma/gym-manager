@@ -1,12 +1,13 @@
 // src/app/api/auth/login/route.ts
 import { NextResponse } from 'next/server';
-import supabase from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/server';
 
 export async function GET(req) {
     return NextResponse.json({ message: 'Login route' });
 }
 
 export async function POST(req) {
+    const supabase = await createClient();
     const { username, password } = await req.json();
 
     const { data, error } = await supabase.auth.signInWithPassword({

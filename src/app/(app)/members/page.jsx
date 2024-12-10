@@ -28,6 +28,7 @@ import { ArrowDownNarrowWide, EllipsisVertical } from "lucide-react";
 import { debounce } from "lodash";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"; // Assuming this is available in your design system
 import { useRouter } from "next/navigation";
+import axios from "axios";
 
 export default function Page() {
     const [list, setList] = useState([]);
@@ -40,16 +41,21 @@ export default function Page() {
     // Fetch the data using Supabase's RPC function
     const getMembersData = async (search = null, page = 1, size = 10) => {
         try {
-            const { data, error } = await supabase.rpc('get_members_with_pagination', {
-                search_term: search,
-                page_number: page,
-                page_size: size,
+            // Make the API request using Axios
+            const response = await axios.get('/api/members/list', {
+                params: {
+                    search, // Search term
+                    page,   // Page number
+                    max: size // Maximum number of members to fetch
+                }
             });
 
-            if (error) {
-                console.error("Error fetching members data:", error);
+            // Check if the API returns a valid response
+            if (response.status === 200) {
+                // Assuming 'data' contains the list of members
+                setList(response.data.members); // Assuming you have a state variable 'setList' to update the list
             } else {
-                setList(data);
+                console.error("Error fetching members data:", response.statusText);
             }
         } catch (error) {
             console.error("Unexpected error:", error);
@@ -59,14 +65,19 @@ export default function Page() {
     // Fetch total members count
     const getTotalMembersCount = async (search = null) => {
         try {
-            const { count, error } = await supabase
-                .from("members") // Assuming you have a 'members' table
-                .select("id", { count: "exact", head: true })
+            try {
+                // Make the API request using Axios
+                const response = await axios.get('/api/members/count');
 
-            if (error) {
-                console.error("Error fetching total members count:", error);
-            } else {
-                setTotalItems(count); // Set the total number of items for pagination
+                // Check if the API returns a valid response
+                if (response.status === 200) {
+                    // Assuming 'data' contains the list of members
+                    setTotalItems(response.data.count); // Assuming you have a state variable 'setList' to update the list
+                } else {
+                    console.error("Error fetching members data:", response.statusText);
+                }
+            } catch (error) {
+                console.error("Unexpected error:", error);
             }
         } catch (error) {
             console.error("Unexpected error fetching total members count:", error);

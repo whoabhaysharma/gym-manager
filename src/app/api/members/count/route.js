@@ -1,19 +1,12 @@
 import { createClient } from '@/lib/supabase/server';
 
 export async function GET(req) {
-    const search = req.nextUrl.searchParams.get("search")
-    const pageNumber = req.nextUrl.searchParams.get("page")
-    const max = req.nextUrl.searchParams.get("max")
-
     const supabase = await createClient();
 
     // Fetch members from the 'members' table
-    const { data : members, error } = await supabase.rpc('get_members_with_pagination', {
-        search_term: search,
-        page_number: pageNumber,
-        page_size: max,
-    });
-
+    const { count, error } = await supabase
+        .from("members") // Assuming you have a 'members' table
+        .select("id", { count: "exact", head: true })
     // Handle errors
     if (error) {
         return new Response(JSON.stringify({ error: error.message }), {
@@ -25,7 +18,7 @@ export async function GET(req) {
     }
 
     // Return success response with members data
-    return new Response(JSON.stringify({ members }), {
+    return new Response(JSON.stringify({ count }), {
         status: 200,
         headers: {
             'Content-Type': 'application/json',

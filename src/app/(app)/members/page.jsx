@@ -28,6 +28,7 @@ import { debounce } from "lodash";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"; // Assuming this is available in your design system
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import { Card, CardHeader } from "@/components/ui/card";
 
 export default function Page() {
     const [list, setList] = useState([]);
@@ -122,7 +123,7 @@ export default function Page() {
         <div>
             <div className="flex justify-between mb-3 mt-3 gap-3">
                 <Input
-                    className="w-1/4"
+                    className="w-full sm:w-1/4"
                     placeholder="Search Members..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -142,50 +143,83 @@ export default function Page() {
                     </DialogContent>
                 </Dialog>
             </div>
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead className="w-[100px]">Name</TableHead>
-                        <TableHead>Code</TableHead>
-                        <TableHead>
-                            <div className="flex gap-2 items-center">
-                                Remaining Days
-                                <ArrowDownNarrowWide size={15} />
-                            </div>
-                        </TableHead>
-                        <TableHead className="text-right">Progress</TableHead>
-                        <TableHead className="text-right">Options</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {list.map(item => (
-                        <TableRow key={item.member_id}>
-                            <TableCell className="cursor-pointer" onClick={() => router.push(`/members/${item.member_id}`)}>{item.member_name}</TableCell>
-                            <TableCell>
-                                <Badge>{item?.member_id}</Badge>
-                            </TableCell>
-                            <TableCell>{item.total_days_remaining}</TableCell>
-                            <TableCell className="text-right">
-                                <Progress value={Math.min((item.total_days_remaining / 30) * 100, 100)} />
-                            </TableCell>
-                            <TableCell className="text-right flex justify-end items-center">
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger>
-                                        <EllipsisVertical className="transition-all hover:bg-slate-400 w-5 h-5 rounded-full cursor-pointer" size={"15"} />
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent>
-                                        <DropdownMenuLabel>Options</DropdownMenuLabel>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuItem onClick={() => console.log("hello")}>Edit</DropdownMenuItem>
-                                        <DropdownMenuItem>Delete</DropdownMenuItem>
-                                        <DropdownMenuItem>Attendance</DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </TableCell>
+            <div className="hidden sm:block">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className="w-[100px]">Name</TableHead>
+                            <TableHead>Code</TableHead>
+                            <TableHead>
+                                <div className="flex gap-2 items-center">
+                                    Remaining Days
+                                    <ArrowDownNarrowWide size={15} />
+                                </div>
+                            </TableHead>
+                            <TableHead className="text-right">Progress</TableHead>
+                            <TableHead className="text-right">Options</TableHead>
                         </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+                    </TableHeader>
+                    <TableBody>
+                        {list.map(item => (
+                            <TableRow key={item.member_id}>
+                                <TableCell className="cursor-pointer" onClick={() => router.push(`/members/${item.member_id}`)}>{item.member_name}</TableCell>
+                                <TableCell>
+                                    <Badge>{item?.member_id}</Badge>
+                                </TableCell>
+                                <TableCell>{item.total_days_remaining}</TableCell>
+                                <TableCell className="text-right">
+                                    <Progress value={Math.min((item.total_days_remaining / 30) * 100, 100)} />
+                                </TableCell>
+                                <TableCell className="text-right flex justify-end items-center">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger>
+                                            <EllipsisVertical className="transition-all hover:bg-slate-400 w-5 h-5 rounded-full cursor-pointer" size={"15"} />
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent>
+                                            <DropdownMenuLabel>Options</DropdownMenuLabel>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem onClick={() => console.log("hello")}>Edit</DropdownMenuItem>
+                                            <DropdownMenuItem>Delete</DropdownMenuItem>
+                                            <DropdownMenuItem>Attendance</DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
+
+            <div className="sm:hidden">
+                {list.map(item => {
+                    return (
+                        <Card className="mb-3">
+                            <div className="p-4">
+                                <div className="flex justify-between">
+                                    <h1 className="text-2xl font-semibold">
+                                        {item.member_name}
+                                    </h1>
+                                    <Badge className={"mt-1"}>
+                                        {item.member_id}
+                                    </Badge>
+                                </div>
+                                <div className="flex flex-row gap-1 items-end mt-2">
+                                    <span className="text-2xl font-black">
+                                        {item.total_days_remaining}
+                                    </span>
+                                    <span className="text-xs mb-1.5">
+                                        Days remaining
+                                    </span>
+                                </div>
+                                <div className="mt-0">
+                                    <Progress value={Math.min((item.total_days_remaining / 30) * 100, 100)} />
+                                </div>
+                            </div>
+                        </Card>
+                    )
+                })}
+            </div>
+
             <div className="mt-4 flex justify-end items-end">
                 <Pagination>
                     <PaginationContent>

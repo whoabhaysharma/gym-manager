@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import moment from "moment";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import { startCase, toLower } from "lodash";
 
 export default function MemberDetail({ id }) {
     const [memberData, setMemberData] = useState(null);
@@ -74,7 +75,7 @@ export default function MemberDetail({ id }) {
                 <CardHeader>
                     <div className="flex flex-row justify-between">
                         <div>
-                            <h2 className="text-3xl font-bold">{memberData.name}</h2>
+                            <h2 className="text-3xl font-bold mb-2">{startCase(toLower(memberData.name))}</h2>
                             <div>
                                 <Badge>{memberData.bill_number}</Badge>
                             </div>

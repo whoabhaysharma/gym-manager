@@ -24,7 +24,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { EllipsisVertical } from "lucide-react";
+import { ArrowDownNarrowWide, EllipsisVertical } from "lucide-react";
 import { debounce } from "lodash";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"; // Assuming this is available in your design system
 import { useRouter } from "next/navigation";
@@ -131,7 +131,12 @@ export default function Page() {
                     <TableRow>
                         <TableHead className="w-[100px]">Name</TableHead>
                         <TableHead>Code</TableHead>
-                        <TableHead>Remaining Days</TableHead>
+                        <TableHead>
+                            <div className="flex gap-2 items-center">
+                                Remaining Days
+                                <ArrowDownNarrowWide size={15} />
+                            </div>
+                        </TableHead>
                         <TableHead className="text-right">Progress</TableHead>
                         <TableHead className="text-right">Options</TableHead>
                     </TableRow>

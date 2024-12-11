@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import moment from "moment";
 import { Separator } from "@/components/ui/separator";
@@ -10,12 +10,37 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import MembershipForm from "./membershipForm";
 import jsPDF from "jspdf"; // Import jsPDF
+import axios from "axios";
+import { Progress } from "@/components/ui/progress";
 
 export default function MemberDetail({ params }) {
     const [memberData, setMemberData] = useState(null);
     const [membershipsData, setMembershipsData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [open, setOpen] = useState(false);
+
+    const [userId, setUserId] = useState(null);
+
+    const isAdmin = userId === process.env.NEXT_PUBLIC_ADMIN_ID
+
+
+    const getUser = async () => {
+        try {
+            // Hit the /api/auth/user endpoint to get user data
+            const response = await axios.get('/api/auth/user')
+
+            // Extract the user id from the response and set it in the state
+            if (response.data && response.data.id) {
+                setUserId(response.data.id)
+            }
+        } catch (err) {
+            console.error('Error fetching user:', err)
+        }
+    }
+
+    useEffect(() => {
+        getUser()
+    }, [])
 
     const fetchData = async () => {
         try {
@@ -128,7 +153,7 @@ export default function MemberDetail({ params }) {
             <div className="mb-4 flex flex-row justify-end">
                 <Dialog open={open} onOpenChange={setOpen}>
                     <DialogTrigger asChild>
-                        <Button>Add Membership +</Button>
+                        {isAdmin ? <Button>Add Membership +</Button> : <></>}
                     </DialogTrigger>
                     <DialogContent>
                         <DialogHeader>
@@ -160,20 +185,45 @@ export default function MemberDetail({ params }) {
                 </CardHeader>
             </Card>
 
-            <Card className="mt-3">
+            <Card className="w-full mx-auto mt-4">
                 <CardHeader>
-                    <h1 className="text-lg">Memberships</h1>
+                    <CardTitle className="text-2xl font-bold">Your Memberships</CardTitle>
                 </CardHeader>
-                <CardContent>
-                    {(membershipsData?.membership || []).map((membership) => (
-                        <div key={membership.id}>
-                            <div className="w-full flex flex-row justify-between">
-                                <p>Start Date: {moment(membership.start_date).format("DD-MM-YYYY")}</p>
-                                <Badge>{`${membership.duration} Month`}</Badge>
-                            </div>
-                            <Separator className="mt-4 mb-4" />
-                        </div>
-                    ))}
+                <CardContent className="space-y-4">
+                    {(membershipsData?.membership || [])
+                        .sort((a, b) => moment(b.start_date).diff(moment(a.start_date)))
+                        .map((membership) => {
+                            const startDate = moment(membership.start_date);
+                            const endDate = startDate.clone().add(membership.duration, 'months');
+                            const currentDate = moment();
+                            const totalDurationDays = endDate.diff(startDate, 'days');
+                            const elapsedDays = currentDate.diff(startDate, 'days');
+                            const progress = Math.min((elapsedDays / totalDurationDays) * 100, 100);
+                            const isActive = currentDate.isBetween(startDate, endDate);
+
+                            return (
+                                <Card key={membership.id} className={`overflow-hidden ${isActive ? 'border-green-500' : 'border-gray-200'}`}>
+                                    <div className="p-4">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <Badge variant={isActive ? "default" : "secondary"}>
+                                                {isActive ? 'Active' : 'Inactive'}
+                                            </Badge>
+                                            <span className="font-semibold">
+                                                {membership.duration} Month{membership.duration > 1 ? 's' : ''}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between gap-2 text-sm mb-2">
+                                            <div>Start: {startDate.format("MMM D, YYYY")}</div>
+                                            <div>End: {endDate.format("MMM D, YYYY")}</div>
+                                        </div>
+                                        <Progress value={progress} className="h-2 mb-2" />
+                                        <div className="text-sm text-muted-foreground text-right">
+                                            {Math.round(progress)}% Complete
+                                        </div>
+                                    </div>
+                                </Card>
+                            );
+                        })}
                 </CardContent>
             </Card>
 

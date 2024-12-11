@@ -29,6 +29,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { Card, CardHeader } from "@/components/ui/card";
+import { createClient } from "@/lib/supabase/client";
 
 export default function Page() {
     const [list, setList] = useState([]);
@@ -37,8 +38,30 @@ export default function Page() {
     const [pageSize, setPageSize] = useState(100);
     const [totalItems, setTotalItems] = useState(0);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-
     const router = useRouter()
+
+    const [userId, setUserId] = useState(null);
+
+    const isAdmin = userId === process.env.NEXT_PUBLIC_ADMIN_ID
+
+
+    const getUser = async () => {
+        try {
+            // Hit the /api/auth/user endpoint to get user data
+            const response = await axios.get('/api/auth/user')
+
+            // Extract the user id from the response and set it in the state
+            if (response.data && response.data.id) {
+                setUserId(response.data.id)
+            }
+        } catch (err) {
+            console.error('Error fetching user:', err)
+        }
+    }
+
+    useEffect(() => {
+        getUser()
+    }, [])
     // Fetch the data using Supabase's RPC function
     const getMembersData = async (search = null, page = 1, size = 10) => {
         try {
@@ -130,7 +153,7 @@ export default function Page() {
                 />
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
-                        <Button onClick={() => setIsDialogOpen(true)}>Add Member</Button>
+                        {isAdmin ? <Button onClick={() => setIsDialogOpen(true)}>Add Member</Button> : <></>} 
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-[425px]">
                         <DialogHeader>
@@ -161,28 +184,31 @@ export default function Page() {
                     </TableHeader>
                     <TableBody>
                         {list.map(item => (
-                            <TableRow key={item.member_id}>
-                                <TableCell className="cursor-pointer" onClick={() => router.push(`/members/${item.member_id}`)}>{startCase(toLower(item.member_name))}</TableCell>
+                            <TableRow key={item.bill_number}>
+                                <TableCell className="cursor-pointer" onClick={() => router.push(`/members/${item.bill_number}`)}>{startCase(toLower(item.member_name))}</TableCell>
                                 <TableCell>
-                                    <Badge>{item?.member_id}</Badge>
+                                    <Badge>{item?.bill_number}</Badge>
                                 </TableCell>
                                 <TableCell>{item.total_days_remaining}</TableCell>
                                 <TableCell className="text-right">
                                     <Progress value={Math.min((item.total_days_remaining / 30) * 100, 100)} />
                                 </TableCell>
                                 <TableCell className="text-right flex justify-end items-center">
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger>
-                                            <EllipsisVertical className="transition-all hover:bg-slate-400 w-5 h-5 rounded-full cursor-pointer" size={"15"} />
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent>
-                                            <DropdownMenuLabel>Options</DropdownMenuLabel>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem onClick={() => console.log("hello")}>Edit</DropdownMenuItem>
-                                            <DropdownMenuItem>Delete</DropdownMenuItem>
-                                            <DropdownMenuItem>Attendance</DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
+                                    {isAdmin ? (
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger>
+                                                <EllipsisVertical className="transition-all hover:bg-slate-400 w-5 h-5 rounded-full cursor-pointer" size={"15"} />
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent>
+                                                <DropdownMenuLabel>Options</DropdownMenuLabel>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem onClick={() => console.log("hello")}>Edit</DropdownMenuItem>
+                                                <DropdownMenuItem>Delete</DropdownMenuItem>
+                                                <DropdownMenuItem>Attendance</DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    ) : <></>}
+
                                 </TableCell>
                             </TableRow>
                         ))}
@@ -193,14 +219,14 @@ export default function Page() {
             <div className="sm:hidden">
                 {list.map(item => {
                     return (
-                        <Card className="mb-3" onClick={() => router.push(`/members/${item.member_id}`)}>
+                        <Card className="mb-3" onClick={() => router.push(`/members/${item.bill_number}`)}>
                             <div className="p-4">
                                 <div className="flex justify-between">
                                     <h1 className="text-2xl font-semibold">
                                         {startCase(toLower(item.member_name))}
                                     </h1>
                                     <Badge className={"mt-1"}>
-                                        {item.member_id}
+                                        {item.bill_number}
                                     </Badge>
                                 </div>
                                 <div className="flex flex-row gap-1 items-end mt-2">

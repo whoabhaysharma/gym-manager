@@ -8,12 +8,11 @@ export async function GET(req) {
     const supabase = await createClient();
 
     // Fetch members from the 'members' table
-    const { data : members, error } = await supabase.rpc('get_members_with_pagination', {
+    const { data : members, error } = await supabase.rpc('members_list', {
         search_term: search,
         page_number: pageNumber,
         page_size: max,
     });
-
     // Handle errors
     if (error) {
         return new Response(JSON.stringify({ error: error.message }), {

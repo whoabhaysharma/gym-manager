@@ -85,7 +85,7 @@ export async function POST(req) {
             .from('memberships')
             .insert([
                 {
-                    member_id: parseInt(memberId, 10), // Convert memberId to an integer
+                    member_id: memberId, // Convert memberId to an integer
                     start_date,
                     duration,
                     amount,

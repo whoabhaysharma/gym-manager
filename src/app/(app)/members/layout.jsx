@@ -17,7 +17,7 @@ export default async function Layout({ children }) {
         <>
             <SidebarProvider>
                 <AppSidebar />
-                <main className="flex-1 flex flex-col p-5">
+                <main className="w-full p-5">
                     <SidebarTrigger />
                     {children}
                 </main>

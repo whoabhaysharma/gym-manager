@@ -220,7 +220,7 @@ export default function Page() {
                 })}
             </div>
 
-            <div className="mt-4 flex justify-end items-end">
+            <div className="mt-4 flex overflow-auto justify-end items-end">
                 <Pagination>
                     <PaginationContent>
                         <PaginationItem>
@@ -230,18 +230,59 @@ export default function Page() {
                                 disabled={currentPage === 1}
                             />
                         </PaginationItem>
-                        {Array.from({ length: totalPages }, (_, i) => (
-                            <PaginationItem key={i}>
+
+                        {/* Show truncated page numbers */}
+                        {currentPage > 3 && (
+                            <PaginationItem>
                                 <PaginationLink
                                     href="#"
-                                    onClick={() => handlePageChange(i + 1)}
-                                    className={currentPage === i + 1 ? 'bg-gray-200 p-2 rounded' : ''}
+                                    onClick={() => handlePageChange(1)}
+                                    className={currentPage === 1 ? 'bg-gray-200 p-2 rounded' : ''}
                                 >
-                                    {i + 1}
+                                    1
                                 </PaginationLink>
-
                             </PaginationItem>
+                        )}
+
+                        {currentPage > 4 && (
+                            <PaginationItem>
+                                <PaginationLink href="#" disabled className="p-2">...</PaginationLink>
+                            </PaginationItem>
+                        )}
+
+                        {/* Display pages before, current, and after */}
+                        {Array.from({ length: 3 }, (_, i) => (
+                            currentPage - 2 + i > 0 && currentPage - 2 + i <= totalPages && (
+                                <PaginationItem key={currentPage - 2 + i}>
+                                    <PaginationLink
+                                        href="#"
+                                        onClick={() => handlePageChange(currentPage - 2 + i)}
+                                        className={currentPage === currentPage - 2 + i ? 'bg-gray-200 p-2 rounded' : ''}
+                                    >
+                                        {currentPage - 2 + i}
+                                    </PaginationLink>
+                                </PaginationItem>
+                            )
                         ))}
+
+                        {currentPage < totalPages - 3 && (
+                            <PaginationItem>
+                                <PaginationLink href="#" disabled className="p-2">...</PaginationLink>
+                            </PaginationItem>
+                        )}
+
+                        {currentPage < totalPages - 2 && (
+                            <PaginationItem>
+                                <PaginationLink
+                                    href="#"
+                                    onClick={() => handlePageChange(totalPages)}
+                                    className={currentPage === totalPages ? 'bg-gray-200 p-2 rounded' : ''}
+                                >
+                                    {totalPages}
+                                </PaginationLink>
+                            </PaginationItem>
+                        )}
+
                         <PaginationItem>
                             <PaginationNext
                                 href="#"
@@ -252,6 +293,7 @@ export default function Page() {
                     </PaginationContent>
                 </Pagination>
             </div>
+
         </div>
     );
 }

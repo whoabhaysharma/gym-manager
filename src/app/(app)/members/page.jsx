@@ -24,7 +24,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ArrowDownNarrowWide, EllipsisVertical } from "lucide-react";
-import { debounce } from "lodash";
+import { debounce, startCase, toLower } from "lodash";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"; // Assuming this is available in your design system
 import { useRouter } from "next/navigation";
 import axios from "axios";
@@ -162,7 +162,7 @@ export default function Page() {
                     <TableBody>
                         {list.map(item => (
                             <TableRow key={item.member_id}>
-                                <TableCell className="cursor-pointer" onClick={() => router.push(`/members/${item.member_id}`)}>{item.member_name}</TableCell>
+                                <TableCell className="cursor-pointer" onClick={() => router.push(`/members/${item.member_id}`)}>{startCase(toLower(item.member_name))}</TableCell>
                                 <TableCell>
                                     <Badge>{item?.member_id}</Badge>
                                 </TableCell>
@@ -193,11 +193,11 @@ export default function Page() {
             <div className="sm:hidden">
                 {list.map(item => {
                     return (
-                        <Card className="mb-3">
+                        <Card className="mb-3" onClick={() => router.push(`/members/${item.member_id}`)}>
                             <div className="p-4">
                                 <div className="flex justify-between">
                                     <h1 className="text-2xl font-semibold">
-                                        {item.member_name}
+                                        {startCase(toLower(item.member_name))}
                                     </h1>
                                     <Badge className={"mt-1"}>
                                         {item.member_id}
@@ -293,7 +293,6 @@ export default function Page() {
                     </PaginationContent>
                 </Pagination>
             </div>
-
         </div>
     );
 }

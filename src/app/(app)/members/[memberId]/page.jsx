@@ -21,7 +21,7 @@ export default function MemberDetail({ params }) {
 
     const [userId, setUserId] = useState(null);
 
-    const isAdmin = userId === process.env.NEXT_PUBLIC_ADMIN_ID
+    const isAdmin = userId === "f21fb98f-1721-4436-ba44-0aad85bf9bea"
 
 
     const getUser = async () => {

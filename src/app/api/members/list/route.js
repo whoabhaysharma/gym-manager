@@ -28,10 +28,10 @@ export async function GET(req) {
     if (bill_number) {
         query = query.eq("bill_number", bill_number);
     }
+   
     if (name) {
-        query = query.like('name', `%${name}%`);
+        query = query.ilike('name', `%${name}%`);
     }
-
     // Execute the query
     const { data: members, count, error } = await query;
 

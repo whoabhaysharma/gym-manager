@@ -6,7 +6,7 @@ export async function GET(req) {
     const pageNumber = parseInt(req.nextUrl.searchParams.get("page"), 10) || 1;
     const max = parseInt(req.nextUrl.searchParams.get("max"), 10) || 10;
     const minRemainingDays = req.nextUrl.searchParams.get("minRemainingDays");
-    const order = req.nextUrl.searchParams.get("order") || "last_updated,asc";
+    const order = req.nextUrl.searchParams.get("order") || "last_updated,desc";
 
     const supabase = await createClient();
 

@@ -35,7 +35,7 @@ export default function Page() {
     const [list, setList] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize, setPageSize] = useState(100);
+    const [pageSize, setPageSize] = useState(20);
     const [totalItems, setTotalItems] = useState(0);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const router = useRouter()
@@ -89,7 +89,7 @@ export default function Page() {
     };
 
     const handleDialogClose = () => {
-        getMembersData()
+        getMembersData('', 1, 20)
         setIsDialogOpen(false); // Close the dialog
     };
 

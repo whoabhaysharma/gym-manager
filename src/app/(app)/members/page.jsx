@@ -68,7 +68,8 @@ export default function Page() {
             // Make the API request using Axios
             const response = await axios.get('/api/members/list', {
                 params: {
-                    search, // Search term
+                    name: isNaN(parseInt(search)) ? search : '', // Search term
+                    code: isNaN(parseInt(search)) ? '' : search,
                     page,   // Page number
                     max: size // Maximum number of members to fetch
                 }
@@ -78,6 +79,7 @@ export default function Page() {
             if (response.status === 200) {
                 // Assuming 'data' contains the list of members
                 setList(response.data.members); // Assuming you have a state variable 'setList' to update the list
+                setTotalItems(response.data.totalCount)
             } else {
                 console.error("Error fetching members data:", response.statusText);
             }
@@ -91,33 +93,10 @@ export default function Page() {
         setIsDialogOpen(false); // Close the dialog
     };
 
-    // Fetch total members count
-    const getTotalMembersCount = async (search = null) => {
-        try {
-            try {
-                // Make the API request using Axios
-                const response = await axios.get('/api/members/count');
-
-                // Check if the API returns a valid response
-                if (response.status === 200) {
-                    // Assuming 'data' contains the list of members
-                    setTotalItems(response.data.count); // Assuming you have a state variable 'setList' to update the list
-                } else {
-                    console.error("Error fetching members data:", response.statusText);
-                }
-            } catch (error) {
-                console.error("Unexpected error:", error);
-            }
-        } catch (error) {
-            console.error("Unexpected error fetching total members count:", error);
-        }
-    };
-
     // Debounced version of getMembersData
     const debouncedGetMembersData = useCallback(
         debounce((name) => {
             getMembersData(name, currentPage, pageSize);
-            getTotalMembersCount(name); // Get total count whenever search changes
         }, 300),
         [currentPage, pageSize]
     );
@@ -185,13 +164,13 @@ export default function Page() {
                     <TableBody>
                         {list.map(item => (
                             <TableRow key={item.bill_number}>
-                                <TableCell className="cursor-pointer" onClick={() => router.push(`/members/${item.bill_number}`)}>{startCase(toLower(item.member_name))}</TableCell>
+                                <TableCell className="cursor-pointer" onClick={() => router.push(`/members/${item.bill_number}`)}>{startCase(toLower(item.name))}</TableCell>
                                 <TableCell>
                                     <Badge>{item?.bill_number}</Badge>
                                 </TableCell>
-                                <TableCell>{item.total_days_remaining}</TableCell>
+                                <TableCell>{item.remaining_days}</TableCell>
                                 <TableCell className="text-right">
-                                    <Progress value={Math.min((item.total_days_remaining / 30) * 100, 100)} />
+                                    <Progress value={Math.min((item.remaining_days / 30) * 100, 100)} />
                                 </TableCell>
                                 <TableCell className="text-right flex justify-end items-center">
                                     {isAdmin ? (
@@ -223,7 +202,7 @@ export default function Page() {
                             <div className="p-4">
                                 <div className="flex justify-between">
                                     <h1 className="text-2xl font-semibold">
-                                        {startCase(toLower(item.member_name))}
+                                        {startCase(toLower(item.name))}
                                     </h1>
                                     <Badge className={"mt-1"}>
                                         {item.bill_number}
@@ -231,14 +210,14 @@ export default function Page() {
                                 </div>
                                 <div className="flex flex-row gap-1 items-end mt-2">
                                     <span className="text-2xl font-black">
-                                        {item.total_days_remaining}
+                                        {item.remaining_days}
                                     </span>
                                     <span className="text-xs mb-1.5">
                                         Days remaining
                                     </span>
                                 </div>
                                 <div className="mt-0">
-                                    <Progress value={Math.min((item.total_days_remaining / 30) * 100, 100)} />
+                                    <Progress value={Math.min((item.remaining_days / 30) * 100, 100)} />
                                 </div>
                             </div>
                         </Card>

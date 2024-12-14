@@ -38,6 +38,7 @@ export default function Page() {
     const [totalItems, setTotalItems] = useState(0);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [sortConfig, setSortConfig] = useState({ key: "", direction: "" });
+    const [minRemainigDays, setMinRemainigDays] = useState(-30)
     const router = useRouter()
 
     const [userId, setUserId] = useState(null);
@@ -68,6 +69,7 @@ export default function Page() {
             // Make the API request using Axios
             const response = await axios.get('/api/members/list', {
                 params: {
+                    minRemainingDays: minRemainigDays,
                     order: (!sortConfig.key || !sortConfig.direction) ? '' : `${sortConfig.key},${sortConfig.direction}`,
                     name: isNaN(parseInt(search)) ? search : '', // Search term
                     code: isNaN(parseInt(search)) ? '' : search,
@@ -99,7 +101,7 @@ export default function Page() {
         debounce((name) => {
             getMembersData(name, currentPage, pageSize);
         }, 300),
-        [currentPage, pageSize, sortConfig]
+        [currentPage, pageSize, sortConfig, minRemainigDays]
     );
 
     useEffect(() => {
@@ -107,7 +109,7 @@ export default function Page() {
         return () => {
             debouncedGetMembersData.cancel();
         };
-    }, [searchTerm, debouncedGetMembersData, sortConfig]);
+    }, [searchTerm, debouncedGetMembersData, sortConfig, minRemainigDays]);
 
     const handlePageChange = (page) => {
         setCurrentPage(page);
@@ -139,6 +141,13 @@ export default function Page() {
                         <MemberForm onSuccess={handleDialogClose} /> {/* Close on success */}
                     </DialogContent>
                 </Dialog>
+            </div>
+            <div className="my-1">
+                <h4 className="hidden sm:block font-bold mb-1">Hide Members</h4>
+                <div className="flex flex-row gap-3 overflow-auto">
+                    <Badge className={"p-2 cursor-pointer sm:p-1"} onClick={() => setMinRemainigDays(prev => prev === -30 ? '' : -30)} variant={minRemainigDays === -30 ? '' : 'outline'}>Not Active For more then 30 days</Badge>
+                    <Badge className={"p-2 cursor-pointer sm:p-1"} onClick={() => setMinRemainigDays(prev => prev === -7 ? '' : -7)} variant={minRemainigDays === -7 ? '' : 'outline'}>Not Active For 7 days</Badge>
+                </div>
             </div>
             <div className="hidden sm:block">
                 <Table>

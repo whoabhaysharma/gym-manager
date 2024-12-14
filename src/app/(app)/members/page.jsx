@@ -23,13 +23,12 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ArrowDownNarrowWide, EllipsisVertical } from "lucide-react";
+import { ArrowDownNarrowWide, ArrowUpNarrowWide, EllipsisVertical } from "lucide-react";
 import { debounce, startCase, toLower } from "lodash";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"; // Assuming this is available in your design system
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { Card, CardHeader } from "@/components/ui/card";
-import { createClient } from "@/lib/supabase/client";
 
 export default function Page() {
     const [list, setList] = useState([]);
@@ -38,6 +37,7 @@ export default function Page() {
     const [pageSize, setPageSize] = useState(20);
     const [totalItems, setTotalItems] = useState(0);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [sortConfig, setSortConfig] = useState({ key: "", direction: "" });
     const router = useRouter()
 
     const [userId, setUserId] = useState(null);
@@ -68,6 +68,7 @@ export default function Page() {
             // Make the API request using Axios
             const response = await axios.get('/api/members/list', {
                 params: {
+                    order: (!sortConfig.key || !sortConfig.direction) ? '' : `${sortConfig.key},${sortConfig.direction}`,
                     name: isNaN(parseInt(search)) ? search : '', // Search term
                     code: isNaN(parseInt(search)) ? '' : search,
                     page,   // Page number
@@ -98,7 +99,7 @@ export default function Page() {
         debounce((name) => {
             getMembersData(name, currentPage, pageSize);
         }, 300),
-        [currentPage, pageSize]
+        [currentPage, pageSize, sortConfig]
     );
 
     useEffect(() => {
@@ -106,17 +107,11 @@ export default function Page() {
         return () => {
             debouncedGetMembersData.cancel();
         };
-    }, [searchTerm, debouncedGetMembersData]);
+    }, [searchTerm, debouncedGetMembersData, sortConfig]);
 
     const handlePageChange = (page) => {
         setCurrentPage(page);
         getMembersData(searchTerm, page, pageSize);
-    };
-
-    const handlePageSizeChange = (size) => {
-        setPageSize(size);
-        setCurrentPage(1); // Reset to first page when page size changes
-        getMembersData(searchTerm, 1, size);
     };
 
     const totalPages = Math.ceil(totalItems / pageSize);
@@ -149,12 +144,31 @@ export default function Page() {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="w-[100px]">Name</TableHead>
-                            <TableHead>Code</TableHead>
+                            <TableHead className="w-[100px]">
+                                <div className="flex gap-2 items-center cursor-pointer select-none" onClick={() => {
+                                    setSortConfig({ key: 'name', direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' })
+                                }}>
+                                    <span>Name</span>
+                                    {sortConfig.key === "name" && sortConfig.direction === 'asc' && <ArrowUpNarrowWide size={15} />}
+                                    {sortConfig.key === "name" && sortConfig.direction === 'desc' && <ArrowDownNarrowWide size={15} />}
+                                </div>
+                            </TableHead>
                             <TableHead>
-                                <div className="flex gap-2 items-center">
-                                    Remaining Days
-                                    <ArrowDownNarrowWide size={15} />
+                                <div className="flex gap-2 items-center cursor-pointer select-none" onClick={() => {
+                                    setSortConfig({ key: 'bill_number', direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' })
+                                }}>
+                                    <span>Code</span>
+                                    {sortConfig.key === "bill_number" && sortConfig.direction === 'asc' && <ArrowUpNarrowWide size={15} />}
+                                    {sortConfig.key === "bill_number" && sortConfig.direction === 'desc' && <ArrowDownNarrowWide size={15} />}
+                                </div>
+                            </TableHead>
+                            <TableHead>
+                                <div className="flex gap-2 items-center cursor-pointer select-none" onClick={() => {
+                                    setSortConfig({ key: 'remaining_days', direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' })
+                                }}>
+                                    <span>Remaining Days</span>
+                                    {sortConfig.key === "remaining_days" && sortConfig.direction === 'asc' && <ArrowUpNarrowWide size={15} />}
+                                    {sortConfig.key === "remaining_days" && sortConfig.direction === 'desc' && <ArrowDownNarrowWide size={15} />}
                                 </div>
                             </TableHead>
                             <TableHead className="text-right">Progress</TableHead>

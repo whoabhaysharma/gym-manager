@@ -185,47 +185,43 @@ export default function MemberDetail({ params }) {
                 </CardHeader>
             </Card>
 
-            <Card className="w-full mx-auto mt-4">
-                <CardHeader>
-                    <CardTitle className="text-2xl font-bold">Your Memberships</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    {(membershipsData?.membership || [])
-                        .sort((a, b) => moment(b.start_date).diff(moment(a.start_date)))
-                        .map((membership) => {
-                            const startDate = moment(membership.start_date);
-                            const endDate = startDate.clone().add(membership.duration, 'months');
-                            const currentDate = moment();
-                            const totalDurationDays = endDate.diff(startDate, 'days');
-                            const elapsedDays = currentDate.diff(startDate, 'days');
-                            const progress = Math.min((elapsedDays / totalDurationDays) * 100, 100);
-                            const isActive = currentDate.isBetween(startDate, endDate);
+            <h1 className="text-xl font-bold m-2">Memberships</h1>
+            <CardContent className="space-y-4 p-0">
+                {(membershipsData?.membership || [])
+                    .sort((a, b) => moment(b.start_date).diff(moment(a.start_date)))
+                    .map((membership) => {
+                        const startDate = moment(membership.start_date);
+                        const endDate = startDate.clone().add(membership.duration, 'months');
+                        const currentDate = moment();
+                        const totalDurationDays = endDate.diff(startDate, 'days');
+                        const elapsedDays = currentDate.diff(startDate, 'days');
+                        const progress = Math.min((elapsedDays / totalDurationDays) * 100, 100);
+                        const isActive = currentDate.isBetween(startDate, endDate);
 
-                            return (
-                                <Card key={membership.id} className={`overflow-hidden ${isActive ? 'border-green-500' : 'border-gray-200'}`}>
-                                    <div className="p-4">
-                                        <div className="flex justify-between items-center mb-2">
-                                            <Badge variant={isActive ? "default" : "secondary"}>
-                                                {isActive ? 'Active' : 'Inactive'}
-                                            </Badge>
-                                            <span className="font-semibold">
-                                                {membership.duration} Month{membership.duration > 1 ? 's' : ''}
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between gap-2 text-sm mb-2">
-                                            <div>Start: {startDate.format("MMM D, YYYY")}</div>
-                                            <div>End: {endDate.format("MMM D, YYYY")}</div>
-                                        </div>
-                                        <Progress value={progress} className="h-2 mb-2" />
-                                        <div className="text-sm text-muted-foreground text-right">
-                                            {Math.round(progress)}% Complete
-                                        </div>
+                        return (
+                            <Card key={membership.id} className={`overflow-hidden ${isActive ? 'border-green-500' : 'border-gray-200'}`}>
+                                <div className="p-4">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <Badge variant={isActive ? "default" : "secondary"}>
+                                            {isActive ? 'Active' : 'Inactive'}
+                                        </Badge>
+                                        <span className="font-semibold">
+                                            {membership.duration} Month{membership.duration > 1 ? 's' : ''}
+                                        </span>
                                     </div>
-                                </Card>
-                            );
-                        })}
-                </CardContent>
-            </Card>
+                                    <div className="flex justify-between gap-2 text-sm mb-2">
+                                        <div>Start: {startDate.format("MMM D, YYYY")}</div>
+                                        <div>End: {endDate.format("MMM D, YYYY")}</div>
+                                    </div>
+                                    <Progress value={progress} className="h-2 mb-2" />
+                                    <div className="text-sm text-muted-foreground text-right">
+                                        {Math.round(progress)}% Complete
+                                    </div>
+                                </div>
+                            </Card>
+                        );
+                    })}
+            </CardContent>
 
             {/* Download Receipt Button */}
             <div className="mt-4 flex justify-end">

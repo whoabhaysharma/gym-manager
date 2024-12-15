@@ -38,7 +38,7 @@ export default function Page() {
     const [totalItems, setTotalItems] = useState(0);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [sortConfig, setSortConfig] = useState({ key: "", direction: "" });
-    const [minRemainigDays, setMinRemainigDays] = useState(-30)
+    const [minRemainigDays, setMinRemainigDays] = useState('')
     const router = useRouter()
 
     const [userId, setUserId] = useState(null);

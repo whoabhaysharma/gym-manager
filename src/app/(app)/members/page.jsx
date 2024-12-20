@@ -128,10 +128,10 @@ export default function MembersPage() {
     };
 
     return (
-        <div className="w-full">
-            <div className="flex justify-between mb-3 mt-3 gap-3">
+        <div className="w-full p-4">
+            <div className="flex justify-between mb-4">
                 <Input
-                    className="w-full sm:w-1/4"
+                    className="w-full sm:w-1/3"
                     placeholder="Search Members..."
                     value={searchTerm}
                     onChange={(e) => {
@@ -144,7 +144,7 @@ export default function MembersPage() {
                         <DialogTrigger asChild>
                             <Button>Add Member</Button>
                         </DialogTrigger>
-                        <DialogContent className="sm:max-w-[425px]">
+                        <DialogContent>
                             <DialogHeader>
                                 <DialogTitle>Create Member</DialogTitle>
                                 <DialogDescription>
@@ -157,13 +157,13 @@ export default function MembersPage() {
                 )}
             </div>
 
-            <div className="my-1">
-                <h4 className="hidden sm:block font-bold mb-1">Filters</h4>
-                <div className="flex flex-row gap-3 overflow-auto">
+            <div className="mb-4">
+                <h4 className="font-bold mb-2">Filters</h4>
+                <div className="flex gap-2">
                     {[30, 7].map((days) => (
                         <Badge
                             key={days}
-                            className="p-2 cursor-pointer sm:p-1"
+                            className="cursor-pointer"
                             variant={minRemainingDays === -days ? "" : "outline"}
                             onClick={() => setMinRemainingDays((prev) => (prev === -days ? "" : -days))}
                         >
@@ -173,13 +173,13 @@ export default function MembersPage() {
                 </div>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="hidden overflow-x-auto sm:block">
                 <Table className="w-full">
                     <TableHeader>
                         <TableRow>
                             {["name", "bill_number", "remaining_days"].map((key) => (
                                 <TableHead key={key} onClick={() => handleSort(key)}>
-                                    <div className="flex items-center gap-2 cursor-pointer">
+                                    <div className="flex items-center gap-1 cursor-pointer">
                                         <span>{startCase(toLower(key))}</span>
                                         {sortConfig.key === key && (sortConfig.direction === "asc" ? <ArrowUpNarrowWide size={15} /> : <ArrowDownNarrowWide size={15} />)}
                                     </div>
@@ -220,16 +220,16 @@ export default function MembersPage() {
                 </Table>
             </div>
 
-            <div className="sm:hidden">
+            <div className="block sm:hidden">
                 {list.map((item, index) => (
                     <Card key={`${item.bill_number}-${index}`} className="mb-3" onClick={() => router.push(`/members/${item.bill_number}`)}>
                         <div className="p-4">
                             <div className="flex justify-between">
-                                <h1 className="text-2xl font-semibold">{startCase(toLower(item.name))}</h1>
+                                <h1 className="text-xl font-semibold">{startCase(toLower(item.name))}</h1>
                                 <Badge>{item.bill_number}</Badge>
                             </div>
                             <div className="flex items-end gap-1 mt-2">
-                                <span className="text-2xl font-black">{item.remaining_days}</span>
+                                <span className="text-xl font-bold">{item.remaining_days}</span>
                                 <span className="text-xs">Days remaining</span>
                             </div>
                             <Progress value={Math.min((item.remaining_days / 30) * 100, 100)} />
@@ -241,6 +241,11 @@ export default function MembersPage() {
             <div ref={observerTarget} className="h-10 w-full text-center">
                 {isLoading && <div>Loading more...</div>}
             </div>
+            {isLoading && (
+                <div className="flex justify-center items-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-gray-900"></div>
+                </div>
+            )}
         </div>
     );
 }

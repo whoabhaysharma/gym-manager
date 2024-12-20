@@ -39,7 +39,7 @@ export default function MembersPage() {
     const [list, setList] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize, setPageSize] = useState(20);
+    const [pageSize, setPageSize] = useState(50);
     const [totalItems, setTotalItems] = useState(0);
     const [sortConfig, setSortConfig] = useState({ key: "", direction: "" });
     const [minRemainingDays, setMinRemainingDays] = useState("");
